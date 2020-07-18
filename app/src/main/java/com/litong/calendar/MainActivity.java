@@ -25,7 +25,7 @@ public class MainActivity extends AppCompatActivity {
         calendarList.setOnDateSelected(new CalendarView.OnSelectedListener() {
             @Override
             public void onSelected(String startDate, String endDate, long days) {
-                Toast.makeText(getApplicationContext(), "s:" + startDate + "e:" + endDate + ", 共: " + days + "天", Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), "s: " + startDate + ", e: " + endDate + ", 共: " + days + "天", Toast.LENGTH_LONG).show();
             }
         });
     }
