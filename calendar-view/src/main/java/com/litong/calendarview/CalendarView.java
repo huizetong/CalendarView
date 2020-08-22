@@ -1,7 +1,6 @@
 package com.litong.calendarview;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.Gravity;
@@ -13,10 +12,11 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.text.SimpleDateFormat;
+import java.util.List;
 import java.util.Locale;
 
 /**
- * 自定义日历控件
+ * 自定义日历控件（开始时间以服务器时间为准）
  */
 public class CalendarView extends LinearLayout {
     private CalendarAdapter mAdapter;
@@ -27,6 +27,11 @@ public class CalendarView extends LinearLayout {
 
     private static final int COLOR_BG = 0xFFE9E3CC;
     private static final int COLOR_TEXT = 0xFFC4A46B;
+
+    /**
+     * 是否为默认选中
+     */
+    private boolean isDefaultSelected = true;
 
     public CalendarView(Context context) {
         super(context);
@@ -85,7 +90,6 @@ public class CalendarView extends LinearLayout {
         });
         recyclerView.setLayoutManager(manager);
         recyclerView.setAdapter(mAdapter);
-        mAdapter.addAll(CommonUtil.days("", ""));
 
         ItemDecoration itemDecoration = new ItemDecoration(context);
         recyclerView.addItemDecoration(itemDecoration);
@@ -105,15 +109,21 @@ public class CalendarView extends LinearLayout {
         }
 
         if (!CommonUtil.isToday(dateEntity.getDate().getTime())
-                && CommonUtil.isTodayBefore(dateEntity.getDate())) {
-            // 今天之前的日期不做操作
+                && (CommonUtil.isStartDateBefore(dateEntity.getDate()) || CommonUtil.is90DaysLater(dateEntity.getDate()))) {
+            // 今天之前或90天后的日期不做操作
             return;
+        }
+
+        if (isDefaultSelected) {
+            // 清除选择的状态
+            clearState();
+            isDefaultSelected = false;
         }
 
         // 如果没有选中开始日期则此次操作选中开始日期
         if (startDate == null) {
             startDate = dateEntity;
-            dateEntity.setItemState(DateEntity.ITEM_STATE_BEGIN_DATE);
+            startDate.setItemState(DateEntity.ITEM_STATE_BEGIN_DATE);
         } else if (endDate == null) {
             // 如果选中了开始日期但没有选中结束日期，本次操作选中结束日期
             if (startDate == dateEntity) {
@@ -176,6 +186,34 @@ public class CalendarView extends LinearLayout {
                 dateEntity.setItemState(DateEntity.ITEM_STATE_NORMAL);
             }
         }
+    }
+
+    /**
+     * 通过开始日期初始化日历数据
+     *
+     * @param initDateStr  初始化日期
+     * @param startDateStr 选中的开始日期
+     * @param endDateStr   选中的结束日期
+     */
+    public void initDate(String initDateStr, String startDateStr, String endDateStr) {
+        List<DateEntity> dateList = CommonUtil.days(TextUtils.isEmpty(initDateStr) ? "" : initDateStr,
+                TextUtils.isEmpty(initDateStr) ? "" : CommonUtil.get90DaysDate(initDateStr));
+        for (DateEntity dateEntity : dateList) {
+            // 遍历数据，设置默认入住和离店时间
+            if (!TextUtils.isEmpty(dateEntity.getDay())
+                    && CommonUtil.isTheSameDate(startDateStr, dateEntity.getDate())) {
+                startDate = dateEntity;
+                startDate.setItemState(DateEntity.ITEM_STATE_BEGIN_DATE);
+            } else if (!TextUtils.isEmpty(dateEntity.getDay())
+                    && CommonUtil.isTheSameDate(endDateStr, dateEntity.getDate())) {
+                endDate = dateEntity;
+                endDate.setItemState(DateEntity.ITEM_STATE_END_DATE);
+                break;
+            } else if (!TextUtils.isEmpty(dateEntity.getDay()) && CommonUtil.isInRange(startDateStr, endDateStr, dateEntity.getDate())) {
+                dateEntity.setItemState(DateEntity.ITEM_STATE_SELECTED);
+            }
+        }
+        mAdapter.addAll(dateList);
     }
 
     public interface OnSelectedListener {

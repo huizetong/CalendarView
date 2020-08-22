@@ -130,8 +130,8 @@ public class CalendarAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 vh.mDateView.removeLabelView();
             } else {
                 if (dateEntity.getDate() != null && !CommonUtil.isToday(dateEntity.getDate().getTime())
-                        && CommonUtil.isTodayBefore(dateEntity.getDate())) {
-                    // 今天之前的日期（不包含今天）
+                        && (CommonUtil.isStartDateBefore(dateEntity.getDate()) || CommonUtil.is90DaysLater(dateEntity.getDate()))) {
+                    // 当天前（不包含当天）或90天后的日期
                     vh.mDateView.setDateTextColor(COLOR_TEXT_BEFORE);
                 } else {
                     // 正常状态

@@ -1,6 +1,7 @@
 package com.litong.calendarview;
 
 import android.content.res.Resources;
+import android.text.TextUtils;
 import android.util.Log;
 
 import java.text.SimpleDateFormat;
@@ -9,6 +10,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 /**
  * 日历工具类
@@ -23,8 +25,19 @@ public class CommonUtil {
 
     private static final int DAY = 86400000;
 
+    private static final int INTERVAL_DAYS = 90;
+
+    /**
+     * 开始时间
+     */
+    private static Date mStartDate;
+
     /**
      * 生成日历数据
+     *
+     * @param sDate 开始日期
+     * @param eDate 结束日期
+     * @return 日期数据集合
      */
     public static List<DateEntity> days(String sDate, String eDate) {
         final List<DateEntity> dateEntities = new ArrayList<>();
@@ -35,24 +48,29 @@ public class CommonUtil {
             SimpleDateFormat formatYYYYMM = new SimpleDateFormat(DATE_FORMAT_YYYYMM_CN, Locale.CHINA);
 
             // 起始日期
-            Date startDate = new Date();
-            calendar.setTime(startDate);
-
+            if (!TextUtils.isEmpty(sDate)) {
+                mStartDate = format.parse(sDate);
+                if (mStartDate == null) {
+                    mStartDate = new Date();
+                }
+            } else {
+                mStartDate = new Date();
+            }
+            calendar.setTime(mStartDate);
             // 结束日期
             calendar.add(Calendar.MONTH, 3);
             Date endDate = new Date(calendar.getTimeInMillis());
 
-            Log.d(TAG, "startDate:" + format.format(startDate) + "----------endDate:" + format.format(endDate));
+            Log.d(TAG, "mStartDate:" + format.format(mStartDate) + "----------endDate:" + format.format(endDate));
 
             // 格式化开始日期和结束日期为 yyyy-mm-dd格式
             String endDateStr = format.format(endDate);
             endDate = format.parse(endDateStr);
 
-            String startDateStr = format.format(startDate);
-            startDate = format.parse(startDateStr);
-
-            if (startDate != null) {
-                calendar.setTime(startDate);
+            String startDateStr = format.format(mStartDate);// 防止未传开始时间
+            mStartDate = format.parse(startDateStr);
+            if (mStartDate != null) {
+                calendar.setTime(mStartDate);
             }
 
             calendar.set(Calendar.DAY_OF_MONTH, 1);
@@ -221,14 +239,72 @@ public class CommonUtil {
     }
 
     /**
-     * 是否为今天之前的日期
+     * 是否为开始日期之前的日期
      *
      * @param targetDate 目标日期
-     * @return 是否为今天之前的日期
+     * @return 是否为开始日期之前的日期
      */
-    public static boolean isTodayBefore(Date targetDate) {
-        Date todayDate = new Date();
-        return targetDate.before(todayDate);
+    public static boolean isStartDateBefore(Date targetDate) {
+        if (mStartDate == null)
+            mStartDate = new Date();
+        return targetDate.before(mStartDate);
+    }
+
+    /**
+     * 判断目标日期是否为开始日期 + 90天后的日期
+     *
+     * @param targetDate 目标日期
+     * @return 目标日期是否为起始日期+90天的日期
+     */
+    public static boolean is90DaysLater(Date targetDate) {
+        if (null != targetDate) {
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(mStartDate);
+            int day = calendar.get(Calendar.DATE);
+            calendar.set(Calendar.DATE, day + INTERVAL_DAYS);
+            return targetDate.after(calendar.getTime());
+        }
+        return false;
+    }
+
+    public static boolean isTheSameDate(String dateStr, Date targetDate) {
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT_YYYYMMDD, Locale.CHINA);
+            return TextUtils.equals(dateStr, sdf.format(targetDate));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public static boolean isInRange(String startDateStr, String endDateStr, Date targetDate) {
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT_YYYYMMDD, Locale.CHINA);
+            Date startDate = sdf.parse(startDateStr);
+            Date endDate = sdf.parse(endDateStr);
+            if (startDate != null && endDate != null) {
+                return targetDate.after(startDate) && targetDate.before(endDate);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public static String get90DaysDate(String startDate) {
+        SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT_YYYYMMDD, Locale.CHINA);
+        try {
+            if (!TextUtils.isEmpty(startDate)) {
+                Calendar calendar = Calendar.getInstance();
+                calendar.setTime(Objects.requireNonNull(sdf.parse(startDate)));
+                int day = calendar.get(Calendar.DATE);
+                calendar.set(Calendar.DATE, day + INTERVAL_DAYS);
+                return sdf.format(calendar.getTime());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public static int dp2px(final float dpValue) {

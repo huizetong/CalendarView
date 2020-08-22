@@ -16,6 +16,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         CalendarView calendarList = findViewById(R.id.calendarView);
+        calendarList.initDate("2020-07-28","2020-07-28","2020-07-31");
         calendarList.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -25,7 +26,7 @@ public class MainActivity extends AppCompatActivity {
         calendarList.setOnDateSelected(new CalendarView.OnSelectedListener() {
             @Override
             public void onSelected(String startDate, String endDate, long days) {
-                Toast.makeText(getApplicationContext(), "s: " + startDate + ", e: " + endDate + ", 共: " + days + "天", Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), "s:" + startDate + "e:" + endDate + ", 共: " + days + "天", Toast.LENGTH_LONG).show();
             }
         });
     }
