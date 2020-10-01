@@ -1,6 +1,7 @@
 package com.litong.calendarview;
 
 import android.content.Context;
+import android.graphics.Typeface;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.Gravity;
@@ -22,7 +23,7 @@ public class CalendarView extends LinearLayout {
     private CalendarAdapter mAdapter;
     private DateEntity startDate;// 开始时间
     private DateEntity endDate;// 结束时间
-    private OnSelectedListener selectedListener;// 选中监听
+    private OnSelectedDateListener selectedDateListener;// 选中监听
     private final SimpleDateFormat mDateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.CHINA);
 
     private static final int COLOR_BG = 0xFFE9E3CC;
@@ -66,6 +67,7 @@ public class CalendarView extends LinearLayout {
             textView = new TextView(context);
             textView.setGravity(Gravity.CENTER);
             textView.setText(week[i]);
+            textView.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));// 加粗
             textView.setTextColor(COLOR_TEXT);
             textView.setTextSize(12f);
             weekLayout.addView(textView, i, layoutParams);
@@ -108,8 +110,8 @@ public class CalendarView extends LinearLayout {
             return;
         }
 
-        if (!CommonUtil.isToday(dateEntity.getDate().getTime())
-                && (CommonUtil.isStartDateBefore(dateEntity.getDate()) || CommonUtil.is90DaysLater(dateEntity.getDate()))) {
+        if (!CommonUtil.isToday(dateEntity.getDate()) &&
+                (CommonUtil.isStartDateBefore(dateEntity.getDate()) || CommonUtil.is90DaysLater(dateEntity.getDate()))) {
             // 今天之前或90天后的日期不做操作
             return;
         }
@@ -124,38 +126,47 @@ public class CalendarView extends LinearLayout {
         if (startDate == null) {
             startDate = dateEntity;
             startDate.setItemState(DateEntity.ITEM_STATE_BEGIN_DATE);
+            if (selectedDateListener != null) {
+                selectedDateListener.onSelected(mDateFormat.format(startDate.getDate()));
+            }
         } else if (endDate == null) {
             // 如果选中了开始日期但没有选中结束日期，本次操作选中结束日期
             if (startDate == dateEntity) {
                 // 如果当前点击的结束日期跟开始日期一致 则不做操作
-
             } else if (dateEntity.getDate().getTime() < startDate.getDate().getTime()) {
                 // 当前点选的日期小于当前选中的开始日期 则本次操作重新选中开始日期
                 startDate.setItemState(DateEntity.ITEM_STATE_NORMAL);
                 startDate = dateEntity;
                 startDate.setItemState(DateEntity.ITEM_STATE_BEGIN_DATE);
+                if (selectedDateListener != null) {
+                    selectedDateListener.onSelected(mDateFormat.format(startDate.getDate()));
+                }
             } else {
                 // 选中结束日期
                 endDate = dateEntity;
                 endDate.setItemState(DateEntity.ITEM_STATE_END_DATE);
                 setState();
-
-                if (selectedListener != null) {
+                if (selectedDateListener != null) {
                     long days = CommonUtil.countDays(startDate.getDate(), endDate.getDate());
-                    selectedListener.onSelected(mDateFormat.format(startDate.getDate()), mDateFormat.format(endDate.getDate()), days);
+                    selectedDateListener.onSelectedComplete(mDateFormat.format(startDate.getDate()),
+                            mDateFormat.format(endDate.getDate()), days);
                 }
             }
         } else {
             // 结束日期和开始日期都已选中
             clearState();
 
-            // 重新选择开始日期,结束日期清除
-            startDate.setItemState(DateEntity.ITEM_STATE_NORMAL);
+            // 重新选择开始日期，结束日期清除
+//            startDate.setItemState(DateEntity.ITEM_STATE_NORMAL);
             startDate = dateEntity;
+//            Log.e("CalendarView", "dateEntity--------->>>>>date=" + startDate.getDate() + ", itemState=" + startDate.getItemState());
             startDate.setItemState(DateEntity.ITEM_STATE_BEGIN_DATE);
-
-            endDate.setItemState(DateEntity.ITEM_STATE_NORMAL);
+//            Log.e("CalendarView", "startDate--------->>>>>date=" + startDate.getDate() + ", itemState=" + startDate.getItemState());
+//            endDate.setItemState(DateEntity.ITEM_STATE_NORMAL);
             endDate = null;
+            if (selectedDateListener != null) {
+                selectedDateListener.onSelected(mDateFormat.format(startDate.getDate()));
+            }
         }
         mAdapter.notifyDataSetChanged();
     }
@@ -175,21 +186,23 @@ public class CalendarView extends LinearLayout {
         }
     }
 
-    // 取消选中状态
+    // 取消选中状态（修改为清除开始到结束的日期状态）
     private void clearState() {
         if (endDate != null && startDate != null) {
             int start = mAdapter.getList().indexOf(startDate);
-            start += 1;
+//            start += 1;
             int end = mAdapter.getList().indexOf(endDate);
-            for (; start < end; start++) {
+//            Log.e("CalendarView", "clearState--------->>>>>start=" + start + ", end=" + end);
+            for (; start <= end; start++) {
                 DateEntity dateEntity = mAdapter.getList().get(start);
                 dateEntity.setItemState(DateEntity.ITEM_STATE_NORMAL);
+//                Log.e("CalendarView", "clearState--------->>>>>start=" + start);
             }
         }
     }
 
     /**
-     * 通过开始日期初始化日历数据
+     * 通过开始日期初始化日历数据（默认初始日期和选中的开始日期为同一天）
      *
      * @param initDateStr  初始化日期
      * @param startDateStr 选中的开始日期
@@ -216,12 +229,14 @@ public class CalendarView extends LinearLayout {
         mAdapter.addAll(dateList);
     }
 
-    public interface OnSelectedListener {
-        void onSelected(String startDate, String endDate, long days);
+    public interface OnSelectedDateListener {
+        void onSelected(String date);
+
+        void onSelectedComplete(String startDate, String endDate, long days);
     }
 
-    public void setOnDateSelected(OnSelectedListener selectedListener) {
-        this.selectedListener = selectedListener;
+    public void setOnSelectedDateListener(OnSelectedDateListener selectedDateListener) {
+        this.selectedDateListener = selectedDateListener;
     }
 
 }

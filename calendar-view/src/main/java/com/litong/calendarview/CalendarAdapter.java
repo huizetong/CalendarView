@@ -106,7 +106,7 @@ public class CalendarAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         } else {
             final DayViewHolder vh = (DayViewHolder) viewHolder;
             DateEntity dateEntity = list.get(position);
-            if (dateEntity.getDate() != null && CommonUtil.isToday(dateEntity.getDate().getTime())) {
+            if (dateEntity.getDate() != null && CommonUtil.isToday(dateEntity.getDate())) {
                 vh.mDateView.setDateText(mContext.getString(R.string.today));
             } else {
                 vh.mDateView.setDateText(dateEntity.getDay());
@@ -129,7 +129,7 @@ public class CalendarAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
                 vh.mDateView.removeLabelView();
             } else {
-                if (dateEntity.getDate() != null && !CommonUtil.isToday(dateEntity.getDate().getTime())
+                if (dateEntity.getDate() != null && !CommonUtil.isToday(dateEntity.getDate())
                         && (CommonUtil.isStartDateBefore(dateEntity.getDate()) || CommonUtil.is90DaysLater(dateEntity.getDate()))) {
                     // 当天前（不包含当天）或90天后的日期
                     vh.mDateView.setDateTextColor(COLOR_TEXT_BEFORE);

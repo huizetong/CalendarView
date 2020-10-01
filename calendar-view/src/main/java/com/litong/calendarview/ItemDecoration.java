@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Typeface;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -25,6 +26,7 @@ public class ItemDecoration extends RecyclerView.ItemDecoration {
 
         mPaint.setColor(Color.parseColor("#F7F7F7"));
         mPaint.setStyle(Paint.Style.FILL);
+
         mTextPaint.setColor(Color.BLACK);
         mTextPaint.setAntiAlias(true);
     }

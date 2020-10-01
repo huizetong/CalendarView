@@ -2,7 +2,6 @@ package com.litong.calendarview;
 
 import android.content.res.Resources;
 import android.text.TextUtils;
-import android.util.Log;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -23,12 +22,10 @@ public class CommonUtil {
     private static final String DATE_FORMAT_YYYYMMDD = "yyyy-MM-dd";
     private static final String DATE_FORMAT_YYYYMM_CN = "yyyy年MM月";
 
-    private static final int DAY = 86400000;
-
     private static final int INTERVAL_DAYS = 90;
 
     /**
-     * 开始时间
+     * 开始时间（服务器返回，并作为当天日期）
      */
     private static Date mStartDate;
 
@@ -61,7 +58,7 @@ public class CommonUtil {
             calendar.add(Calendar.MONTH, 3);
             Date endDate = new Date(calendar.getTimeInMillis());
 
-            Log.d(TAG, "mStartDate:" + format.format(mStartDate) + "----------endDate:" + format.format(endDate));
+//            Log.d(TAG, "mStartDate:" + format.format(mStartDate) + "----------endDate:" + format.format(endDate));
 
             // 格式化开始日期和结束日期为 yyyy-mm-dd格式
             String endDateStr = format.format(endDate);
@@ -102,7 +99,7 @@ public class CommonUtil {
                 // 重置为本月开始
                 monthCalendar.set(Calendar.DAY_OF_MONTH, 1);
 
-                Log.d(TAG, "月份的开始日期:" + format.format(startMonthDay) + "---------结束日期:" + format.format(endMonthDay));
+//                Log.d(TAG, "月份的开始日期:" + format.format(startMonthDay) + "---------结束日期:" + format.format(endMonthDay));
                 // 生成单个月的日历
                 for (; monthCalendar.getTimeInMillis() <= endMonthDay.getTime(); ) {
                     // 处理一个月开始的第一天
@@ -221,21 +218,13 @@ public class CommonUtil {
     /**
      * 是否为今天
      *
-     * @param millis 时间毫秒
      * @return 是否为今天
      */
-    public static boolean isToday(final long millis) {
-        long wee = getWeeOfToday();
-        return millis >= wee && millis < wee + DAY;
-    }
-
-    private static long getWeeOfToday() {
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(Calendar.HOUR_OF_DAY, 0);
-        calendar.set(Calendar.SECOND, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.MILLISECOND, 0);
-        return calendar.getTimeInMillis();
+    public static boolean isToday(Date targetDate) {
+        if (null != mStartDate) {
+            return mStartDate.compareTo(targetDate) == 0;
+        }
+        return false;
     }
 
     /**

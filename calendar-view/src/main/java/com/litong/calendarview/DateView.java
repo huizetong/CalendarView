@@ -2,6 +2,7 @@ package com.litong.calendarview;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.widget.LinearLayout;
@@ -31,7 +32,6 @@ public class DateView extends LinearLayout {
     private void initViews() {
         // 设置垂直方向
         setOrientation(LinearLayout.VERTICAL);
-        setGravity(Gravity.CENTER);
         // 设置Layout大小
         setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, CommonUtil.dp2px(45)));
 
@@ -40,6 +40,9 @@ public class DateView extends LinearLayout {
         mDateTv.setTextColor(Color.BLACK);
         mDateTv.setTextSize(16f);
         addView(mDateTv, 0);
+
+        // 设置为水平居中
+        setGravity(Gravity.CENTER);
     }
 
     public void setDateText(String text) {
@@ -58,8 +61,9 @@ public class DateView extends LinearLayout {
             labelTv.setTextColor(Color.WHITE);
             labelTv.setTextSize(12f);
             addView(labelTv, 1);
+
             // 设置为水平居中
-            setGravity(Gravity.CENTER_HORIZONTAL);
+            setGravity(Gravity.CENTER);
         }
     }
 
